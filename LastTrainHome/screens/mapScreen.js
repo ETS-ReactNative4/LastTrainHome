@@ -14,61 +14,52 @@ import {
 } from 'react-native-webview'
 
 import html_script from '../leaflet/html_script'
+import data from '../leaflet/test3'
 
 class App extends React.Component {
 
-  _goToMyPosition = (lat, lon) => {
-    this.refs['Map_Ref'].injectJavaScript(`
-      mymap.setView([${lat}, ${lon}], 18)
-      L.marker([${lat}, ${lon}]).addTo(mymap)
-    `)
-  }
-
-  _setMarker = (lat, lon) => {
-    this.refs['Map_Ref'].injectJavaScript(`
-      var marker = L.marker([${lat}, ${lon}]);
-      marker.addTo(mymap);
-      `)
-  }
-
   render() {
-    const curLocLat = 1.311549; //passed from homeScreen
-    const curLocLong = 103.749655; //passed from homeScreen
-    const desLocLat = 1.32036; //passed from homeScreen
-    const desLocLong = 103.800153; //passed from homeScreen
-    const routeName = "BLK 256 ABC to Blk 2 DEF" //passed from homeScreen
-    const timeName = "11:12 PM to 11:50 PM" //passed from homeScreen
-    const routeGeometry = "yr`oAm`k{dEksAstD~e@iW`e@{UxtAqr@pd@sVrOmItC}GZ}GJwDeSmWkm@gb@qKuEyCwE}AgHJiH\\kE{BaRoCoEsGcLiE{N{AmQvB{QbFkN|E}FzMcPtQmTh|A_iBfCcDzHcKpJaMr\\w_@t\\i`@hb@gg@lAkJRqJg@wJeCoMgQ{f@qHsTuC_FiMsT_S_ViVkPkfAyi@oXiNq{@q_@qn@cU{SsGgEqAiDeAcTsGcd@eMoF{AoBi@uGkB}d@uMwDoA_EsA{QiG_VyJaSkLkQuN}CgDqJkKqDsFqE_H}CuE}CyEsBsGcDeKuK}f@}FiJ_FaEkKiEgHcAe~@xMsr@`LqMrB_En@gAy`@kBkVwE{W_^gbAkHg[aFeQaRe^_Nea@iEwYJkYsAyj@KiRkGglAcDqn@KiUrDkc@nFkY`Lo]lIeQfJgOfcAyhAzJ}KtPsTjIuQxFaQrBcN|E{u@rDgh@hBuYjDy_@zHoUbI}O|PwSkDuBiP_K{]cTq_Ack@ixAe|@_L}G{LoHynBujAsh@iZiRqK}|@ig@xg@wo@v{@_gA~q@g}@fUgZp^{`@gDqLv`@oNfTwH~LcIl@gEy@{PqU_V_`@cuAvHwJt^_MvXgMxCaD"
+    var inputData = data["data"]
+    var inputDataLen = inputData.length
+    const curLocLat = inputData[0]["from"]["lat"]
+    const curLocLong = inputData[0]["from"]["lon"]
+    const desLocLat = inputData[inputDataLen-1]["to"]["lat"]
+    const desLocLong = inputData[inputDataLen-1]["to"]["lon"]
+    const routeName = inputData[0]["from"]["name"]+" to "+ inputData[inputDataLen-1]["to"]["name"]
+    
+    var startTime = new Date(inputData[0]["startTime"])
+    var endTime = new Date(inputData[inputDataLen-1]["endTime"])
+    const timeName = startTime.toLocaleDateString()+" - "+startTime.toLocaleTimeString().slice(0, -3)+" to "+endTime.toLocaleTimeString().slice(0, -3)
+
     var polyUtil = require('polyline-encoded');
-    var encoded = routeGeometry;
-
-    if (encoded !== undefined || encoded !== '' || encoded != null ) {
-      var latlngs = polyUtil.decode(encoded, {
-        precision: 6
-      });}
-
     var polylinePoints = ""
-    for (let i=0 ; i<latlngs.length ; i++){
-      polylinePoints += ("[" + latlngs[i].toString() + "],")
+    for (let i=0 ; i<inputData.length ; i++){
+      var encoded = inputData[i]["legGeometry"]["points"]
+      if (encoded !== undefined || encoded !== '' || encoded != null ) {
+        var latlngs = polyUtil.decode(encoded, {
+          precision: 5
+        });}
+  
+      for (let i=0 ; i<latlngs.length ; i++){
+        polylinePoints += ("[" + latlngs[i].toString() + "],")
+      } 
     }
     polylinePoints = "[" + polylinePoints + "]"
-    console.log(polylinePoints)
-      
+
     return (
       <>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.Container}>
           <WebView ref={'Map_Ref'}  source={{html: html_script}} style={styles.Webview} 
           injectedJavaScript={`
-           var curMarker = L.marker([${curLocLat}, ${curLocLong}]);
-           curMarker.addTo(mymap);
-           var desMarker = L.marker([${desLocLat}, ${desLocLong}]);
-           desMarker.addTo(mymap);
-           var polyline = L.polyline(${polylinePoints}
-             ,{color: "purple",weight: 5,smoothFactor: 1});
-           var bounds = polyline.getBounds();
-           polyline.addTo(mymap);
-           mymap.fitBounds(bounds);
+          var curMarker = L.marker([${curLocLat}, ${curLocLong}]);
+          curMarker.addTo(mymap);
+          var desMarker = L.marker([${desLocLat}, ${desLocLong}]);
+          desMarker.addTo(mymap);
+
+          var polyline = L.polyline(${polylinePoints}
+            ,{color: "purple",weight: 5,smoothFactor: 1});
+          polyline.addTo(mymap);
           `}
           />
           <TouchableOpacity style={styles.card}>
@@ -106,7 +97,7 @@ const styles = StyleSheet.create({
     },
   },
   mapText: {
-    fontSize: 20,
+    fontSize: 15,
   },
 
   buttonView: {

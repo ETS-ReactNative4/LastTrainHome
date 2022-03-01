@@ -3,16 +3,16 @@ import React, {useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import { StyleSheet, Text, View, ImageBackground, Button, TextInput } from 'react-native';
 
-export default function HomeScreen({ navigation, route }) {
-  const passData = route.params;
-  const curLoc = passData.curLoc;
-  const desLoc = passData.desLoc;
+export default function InputScreen({ navigation }) {
+  const [curLoc, setCurLoc] = useState(null); //initial
+  const [desLoc, setDesLoc] = useState(null); //initial
 
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  const [curcoord, setcurcoord] = useState(null);
-  const [descoord, setdescoord] = useState(null);
+  const [curaddress, setcuraddress] = useState(null);
+
+  const [text, setText] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -23,11 +23,9 @@ export default function HomeScreen({ navigation, route }) {
       }
 
       let location = await Location.getCurrentPositionAsync({});
-      let curcoord = await Location.geocodeAsync(curLoc);
-      let descoord = await Location.geocodeAsync(desLoc);
+      let curaddress = await Location.reverseGeocodeAsync(location.coords);
       setLocation(location);
-      setcurcoord(curcoord);
-      setdescoord(descoord);
+      setcuraddress(curaddress);
     })();
   }, []);
 
@@ -36,21 +34,14 @@ export default function HomeScreen({ navigation, route }) {
     loctext = errorMsg;
   } else if (location) {
     loctext = JSON.stringify(location["coords"]["latitude"])+" "+JSON.stringify(location["coords"]["longitude"]);
+    
+  }
+  let curaddresstext = 'waiting..'
+  if (curaddress !== null){
+    curaddresstext = curaddress[0]["name"]+" "+curaddress[0]["street"];
   }
 
-  let curlattext = 'Waiting..';
-  let curlngtext = 'Waiting..';
-  let deslattext = 'Waiting..';
-  let deslngtext = 'Waiting..';
-  if (curcoord !== null){
-    curlattext = curcoord[0]["latitude"];
-    curlngtext = curcoord[0]["longitude"];
-  }
-
-  if (descoord !== null){
-    deslattext = descoord[0]["latitude"];
-    deslngtext = descoord[0]["longitude"];
-  }
+  let passData = {curLoc,desLoc}
 
   return (
     <View style={styles.container}>
@@ -66,20 +57,25 @@ export default function HomeScreen({ navigation, route }) {
         </View>
 
         <View style={styles.inputSpace}>
-          <Text style={styles.inputText}>Starting Location</Text>
-          <Text style={styles.inputText}>{curLoc}</Text>
-          <Text style={styles.inputText}>Destination</Text>
-
-          <Text style={styles.inputText}>{desLoc}</Text>
-          <Text style={styles.inputText}>{curlattext}</Text>
-          <Text style={styles.inputText}>{curlngtext}</Text>
-          <Text style={styles.inputText}>{deslattext}</Text>
-          <Text style={styles.inputText}>{deslngtext}</Text>
+          <Text style={styles.inputText}>Input your Starting Location</Text>
+          <TextInput placeholderTextColor="#afafaf" 
+            style={styles.input}
+            placeholder='Starting Location'
+            value = {text}
+            onChangeText={(val) => {setCurLoc(val); setText(val)}}
+          />
+          <Button style={styles.inputButton} title="Set Current Location" onPress={() => {setCurLoc(curaddresstext); setText(curaddresstext);}}/>
+          <Text style={styles.inputText}>Input your Destination</Text>
+          <TextInput placeholderTextColor="#afafaf" 
+            style={styles.input}
+            placeholder='Destination'
+            onChangeText={(val) => setDesLoc(val)}
+          />
 
         </View>
 
         <Button style={styles.inputButton}
-         title="Search" onPress={() => {navigation.navigate('Mapview')}} />
+         title="Search" disabled={!curLoc||!desLoc} onPress={() => {navigation.navigate('Home',passData)}} />
 
       </View>
       <StatusBar style="auto" />
