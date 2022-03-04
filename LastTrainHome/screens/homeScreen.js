@@ -25,6 +25,7 @@ export default function HomeScreen({ navigation, route }) {
       let location = await Location.getCurrentPositionAsync({});
       let curcoord = await Location.geocodeAsync(curLoc);
       let descoord = await Location.geocodeAsync(desLoc);
+
       setLocation(location);
       setcurcoord(curcoord);
       setdescoord(descoord);
@@ -38,19 +39,47 @@ export default function HomeScreen({ navigation, route }) {
     loctext = JSON.stringify(location["coords"]["latitude"])+" "+JSON.stringify(location["coords"]["longitude"]);
   }
 
-  let curlattext = 'Waiting..';
-  let curlngtext = 'Waiting..';
-  let deslattext = 'Waiting..';
-  let deslngtext = 'Waiting..';
-  if (curcoord !== null){
+  let curlattext = 'invalid';
+  let curlngtext = 'invalid';
+  let deslattext = 'invalid';
+  let deslngtext = 'invalid';
+  if (curcoord !== null && curcoord.length !== 0){
     curlattext = curcoord[0]["latitude"];
     curlngtext = curcoord[0]["longitude"];
   }
 
-  if (descoord !== null){
+  if (descoord !== null && descoord.length !== 0){
     deslattext = descoord[0]["latitude"];
     deslngtext = descoord[0]["longitude"];
   }
+
+  let validText = 'Searching...';
+  if (curlattext === 'invalid' || curlngtext === 'invalid'){
+    validText = 'Starting Location is an invalid address!';
+    if (deslattext === 'invalid' || deslngtext === 'invalid'){
+      validText = 'Starting Location and Destination are invalid addresses!';
+    }
+  }
+  else if (deslattext === 'invalid' || deslngtext === 'invalid'){
+    validText = 'Destination is an invalid address!';
+  }
+  else if (parseFloat(curlattext) < 1.22 || parseFloat(curlattext) > 1.47 || parseFloat(curlngtext) < 103.60 || parseFloat(curlngtext) > 104.04){
+    validText = 'Starting Location is out of Singapore';
+    if (parseFloat(deslattext) < 1.22 || parseFloat(deslattext) > 1.47 || parseFloat(deslngtext) < 103.60 || parseFloat(deslngtext) > 104.04){
+      validText = 'Starting Location and Destination is out of Singapore';
+    }
+  }
+  else if (parseFloat(deslattext) < 1.22 || parseFloat(deslattext) > 1.47 || parseFloat(deslngtext) < 103.60 || parseFloat(deslngtext) > 104.04){
+    validText = 'Destination is out of Singapore';
+  }
+  else {
+    validText = 'Press Search to see directions!';
+  }
+  
+  //let validcoord = False;
+
+  let passCoord = {curlattext,curlngtext,deslattext,deslngtext};
+  console.log(passCoord)
 
   return (
     <View style={styles.container}>
@@ -65,22 +94,23 @@ export default function HomeScreen({ navigation, route }) {
           <Text style={styles.subtitle}>Catch your last train back home!</Text>
         </View>
 
-        <View style={styles.inputSpace}>
-          <Text style={styles.inputText}>Starting Location</Text>
-          <Text style={styles.inputText}>{curLoc}</Text>
-          <Text style={styles.inputText}>Destination</Text>
-
-          <Text style={styles.inputText}>{desLoc}</Text>
-          <Text style={styles.inputText}>{curlattext}</Text>
-          <Text style={styles.inputText}>{curlngtext}</Text>
-          <Text style={styles.inputText}>{deslattext}</Text>
-          <Text style={styles.inputText}>{deslngtext}</Text>
-
+        <View style={styles.homeSpace}>
+          <Text style={styles.inputText}>Starting Location:</Text>
+          <Text style={styles.addressText}>{curLoc}</Text>
+        </View>
+        <View style={styles.homeSpace2}>
+          <Text style={styles.inputText}>Destination:</Text>
+          <Text style={styles.addressText}>{desLoc}</Text>
         </View>
 
-        <Button style={styles.inputButton}
-         title="Search" onPress={() => {navigation.navigate('Mapview')}} />
-
+        <View style={styles.homeSpace3}>
+          <Text style={styles.errorText}>{validText}</Text>
+        </View>
+        
+        <View style={styles.buttonSpace}>
+          <Button style={styles.inputButton}
+           title="Search" disabled={validText !== 'Press Search to see directions!'} onPress={() => {navigation.navigate('Mapview')}} />
+         </View>
       </View>
       <StatusBar style="auto" />
     </View>
@@ -124,14 +154,42 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
 
-  inputSpace: {
+  homeSpace: {
     marginTop: '20%',
+    width: '100%',
+    alignItems: 'center',
+  },
+
+  homeSpace2: {
+    marginTop: '10%',
+    width: '100%',
+    alignItems: 'center',
+  },
+
+  homeSpace3: {
+    marginTop: '20%',
+    width: '100%',
+    alignItems: 'center',
+  },
+
+  buttonSpace: {
+    marginTop: '5%',
     width: '100%',
     alignItems: 'center',
   },
 
   inputText: {
     fontSize: 15,
+    color: 'white',
+  },
+
+  addressText: {
+    fontSize: 20,
+    color: 'white',
+  },
+
+  errorText: {
+    fontSize: 12,
     color: 'white',
   },
 

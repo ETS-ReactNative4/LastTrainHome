@@ -14,19 +14,19 @@ import data from '../leaflet/test3'
 
 export default function Direction({ navigation }) {
 
+  var inputData = data["data"]
+  var inputDataLen = inputData.length
+
   const triggerNotifications = async () => {
     await Notifications.scheduleNotificationAsync({
     content: {
-    title: "Youve got mail!",
-    body: "Here is the notification body",
+    title: "Last Train Home",
+    body: "You need to leave the place at "+new Date(inputData[0]["startTime"]).toLocaleTimeString().slice(0, -3),
     data: { data: "goes here" },
     },
     trigger: { seconds: 2 },
     });
     }
-
-  var inputData = data["data"]
-  var inputDataLen = inputData.length
 
   var cardloop = []
   for (let i = 0 ; i < inputDataLen ; i++) {

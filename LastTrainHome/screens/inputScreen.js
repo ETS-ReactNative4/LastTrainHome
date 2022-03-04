@@ -74,9 +74,10 @@ export default function InputScreen({ navigation }) {
 
         </View>
 
-        <Button style={styles.inputButton}
-         title="Search" disabled={!curLoc||!desLoc} onPress={() => {navigation.navigate('Home',passData)}} />
-
+        <View style={styles.buttonSpace}>
+          <Button style={styles.inputButton}
+           title="Search" disabled={!curLoc||!desLoc} onPress={() => {navigation.navigate('Home',passData)}} />
+        </View>
       </View>
       <StatusBar style="auto" />
     </View>
@@ -138,6 +139,12 @@ const styles = StyleSheet.create({
     margin: 10,
     width: 400,
     color: 'white',
+  },
+
+  buttonSpace: {
+    marginTop: '20%',
+    width: '100%',
+    alignItems: 'center',
   },
 
   inputButton: {
