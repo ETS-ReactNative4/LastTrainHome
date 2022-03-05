@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, {useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import * as Location from 'expo-location';
 import { StyleSheet, Text, View, ImageBackground, Button, TextInput } from 'react-native';
 
@@ -73,13 +73,29 @@ export default function HomeScreen({ navigation, route }) {
     validText = 'Destination is out of Singapore';
   }
   else {
-    validText = 'Press Search to see directions!';
+    validText = 'Searching for route...';
   }
   
-  //let validcoord = False;
-
   let passCoord = {curlattext,curlngtext,deslattext,deslngtext};
-  console.log(passCoord)
+  const [resultJson, setresultJson] = useState('');
+
+  function getJsonData(lat1,lng1,lat2,lng2) {
+    //using ngrok to host localhost
+    fetch('http://cd3b-2406-3003-2003-10fa-14d9-3a98-825c-2668.ngrok.io/routes?start='+lat1+','+lng1+'&end='+lat2+','+lng2,
+    {method: "GET"}).then((response) => response.json())
+    .then((responseJson) => {
+      setresultJson(JSON.stringify(responseJson))
+    })
+    .catch((error) => {
+      console.error(error)
+    });
+  }
+  if (validText == 'Searching for route...'){
+    getJsonData(curlattext,curlngtext,deslattext,deslngtext);
+    if (resultJson !== ''){
+      validText = 'Press Search to see directions!';
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -109,7 +125,7 @@ export default function HomeScreen({ navigation, route }) {
         
         <View style={styles.buttonSpace}>
           <Button style={styles.inputButton}
-           title="Search" disabled={validText !== 'Press Search to see directions!'} onPress={() => {navigation.navigate('Mapview')}} />
+           title="Search" disabled={validText !== 'Press Search to see directions!'} onPress={() => {navigation.navigate('Mapview',resultJson)}} />
          </View>
       </View>
       <StatusBar style="auto" />

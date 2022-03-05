@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{ useState, Component } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,13 @@ import {
 } from 'react-native-webview'
 
 import html_script from '../leaflet/html_script'
-import data from '../leaflet/test3'
 
-class App extends React.Component {
+class App extends Component {
 
   render() {
-    var inputData = data["data"]
+    const passRoute = this.props.route.params;
+
+    var inputData = JSON.parse(passRoute)["data"]
     var inputDataLen = inputData.length
     const curLocLat = inputData[0]["from"]["lat"]
     const curLocLong = inputData[0]["from"]["lon"]
@@ -68,7 +69,7 @@ class App extends React.Component {
           </TouchableOpacity>
           <View style={styles.buttonView}>
             <Button style={styles.inputButton}
-            title="Direction" onPress={() => {this.props.navigation.navigate('Direction')}} />
+            title="Direction" onPress={() => {this.props.navigation.navigate('Direction',passRoute)}} />
           </View>
         </SafeAreaView>
       </>

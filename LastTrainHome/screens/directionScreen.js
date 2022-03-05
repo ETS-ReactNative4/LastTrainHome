@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, Button, Platform, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Button, Platform, TouchableOpacity, ScrollView } from 'react-native';
 import * as Notifications from "expo-notifications";
 
 Notifications.setNotificationHandler({
@@ -10,11 +10,10 @@ Notifications.setNotificationHandler({
   }
 })
 
-import data from '../leaflet/test3'
+export default function Direction({ navigation, route }) {
+  const passRoute = route.params;
 
-export default function Direction({ navigation }) {
-
-  var inputData = data["data"]
+  var inputData = JSON.parse(passRoute)["data"]
   var inputDataLen = inputData.length
 
   const triggerNotifications = async () => {
@@ -34,10 +33,10 @@ export default function Direction({ navigation }) {
     var endTime = new Date(inputData[i]["endTime"])
     var timeName = startTime.toLocaleTimeString().slice(0, -3)+" to "+endTime.toLocaleTimeString().slice(0, -3)
     if (inputData[i]["mode"] == "BUS"){
-      var mode = "Take Bus"
+      var mode = "Take Bus "+inputData[i]["routeShortName"]
     }
     else if (inputData[i]["mode"] == "SUBWAY"){
-      var mode = "Take MRT"
+      var mode = "Take "+inputData[i]["routeShortName"]+" MRT"
     }
     else if (inputData[i]["mode"] == "WALK"){
       var mode = "Walk"
@@ -54,9 +53,11 @@ export default function Direction({ navigation }) {
 
   return (  
     <View style={styles.container}>
-      {cardloop}
-      <Button onPress={triggerNotifications} 
+    <Button onPress={triggerNotifications} 
       title="Set Notifications" color="#841584" accessibilityLabel="Trigger Local Notifications"/>
+    <ScrollView style={styles.scrollView}>
+      {cardloop}
+    </ScrollView>  
     </View>
   );
 };
@@ -64,7 +65,11 @@ export default function Direction({ navigation }) {
 
 const styles = StyleSheet.create({
     container: {
-      marginTop: 40
+
+    },
+
+    scrollView: {
+
     },
 
     cardTextTime: {
